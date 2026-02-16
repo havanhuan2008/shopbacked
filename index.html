@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ASCII Webcam</title>
+    <style type="text/css">
+      html,
+      body {
+        background-color: black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        max-width: 100vw;
+        max-height: 100vh;
+      }
+      video.original-video {
+        display: none;
+      }
+      div.ascii-video {
+        white-space: pre;
+        font-family: monospace;
+        font-size: 9px;
+        line-height: 8px;
+        color: green;
+        margin-left: auto;
+        margin-right: auto;
+        width: auto;
+      }
+      canvas.scaled-video {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <video class="original-video"></video>
+    <canvas class="scaled-video"></canvas>
+    <div class="ascii-video"></div>
+
+    <script type="text/javascript">
+      (async () => {
+        // Define the green screen color to filter out
+        const green = { r: 68, g: 176, b: 145 };
+        const frameRate = 10;
+        const scaleWidth = 250;
+        const rampSize = 8;
+        const asciiCharsDarkToLight = createRamp(rampSize); // you can replace this with a custom string
+
+        const interval = Math.floor(1000 / frameRate);
+        const videoElement = document.querySelector("video.original-video");
+        const scaledVideo = document.querySelector("canvas.scaled-video");
+        const asciiVideo = document.querySelector("div.ascii-video");
+
+        const loadPromise = new Promise((resolve) => {
+          videoElement.onloadeddata = resolve;
+        });
+
+        const cameraChoice = (document.location.hash || "#").substring(1);
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: cameraChoice ? { deviceId: cameraChoice } : true,
+        });
+
+        console.log({ cameraChoice, stream });
+
+        videoElement.srcObject = stream;
+        videoElement.play();
+
+        await loadPromise;
+
+        const { videoWidth, videoHeight } = videoElement;
+        const scaleHeight = Math.floor((videoHeight * scaleWidth) / videoWidth);
+        console.log({ videoWidth, videoHeight, scaleWidth, scaleHeight });
+        scaledVideo.width = scaleWidth;
+        scaledVideo.height = scaleHeight;
+
+        const ctx = scaledVideo.getContext("2d", { willReadFrequently: true });
+
+        draw();
+
+        function draw() {
+          ctx.drawImage(videoElement, 0, 0, scaleWidth, scaleHeight);
+          const imageData = ctx.getImageData(
+            0,
+            0,
+            scaleWidth,
+            scaleHeight
+          ).data;
+          const ascii = [[]];
+          for (let i = 0; i < scaleWidth * scaleHeight * 4; i += 4) {
+            const row = ascii[ascii.length - 1];
+            let r = imageData[i];
+            let g = imageData[i + 1];
+            let b = imageData[i + 2];
+            let a = imageData[i + 3];
+            if (i === 48) {
+              //   console.log(`rgba(${r},${g},${b},${a})`);
+            }
+
+            // filter out green screen pixels using euclidian distance
+            const distance = Math.sqrt(
+              Math.pow(r - green.r, 2) +
+                Math.pow(g - green.g, 2) +
+                Math.pow(b - green.b, 2)
+            );
+            if (distance < 95) {
+              r = 0;
+              g = 0;
+              b = 0;
+            }
+
+            const brightness = (r + g + b) / 3;
+            const index = Math.floor(
+              (brightness / 255) * asciiCharsDarkToLight.length
+            );
+
+            const char = asciiCharsDarkToLight[index];
+            row.push(char);
+
+            if (i % (scaleWidth * 4) === 0) {
+              ascii.push([]);
+            }
+          }
+          // asciiVideo.innerHTML = ascii
+          //   .map((row) => row.map((char) => `<span>${char}</span>`).join(""))
+          //   .join("<br>");
+          asciiVideo.textContent = ascii.map((row) => row.join("")).join("\n");
+          setTimeout(draw, interval);
+        }
+
+        function createRamp(rampLength) {
+          // Expanded character set: ASCII, blocks, suits, etc.
+          const chars = [];
+          // include ASCII characters
+          for (let i = 32; i < 127; i++) chars.push(String.fromCharCode(i));
+          // include additional block characters
+          // const extraChars = " █▓▒░■□◆◇●○◼◻♠♣♥♦▲△▼▽◀▶◈◉◊";
+          const extraChars = " ♠♣♥♦";
+          extraChars.split("").forEach((c) => chars.push(c));
+
+          // Canvas setup
+          const canvas = document.createElement("canvas");
+          canvas.width = 100;
+          canvas.height = 100;
+          const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+          // Analyze each character
+          const charMap = [];
+          chars.forEach((char) => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = "bold 32px monospace";
+            ctx.fillStyle = "#fff";
+            ctx.textBaseline = "top";
+            ctx.fillText(char, 4, 4);
+
+            const imageData = ctx.getImageData(
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            ).data;
+            let darkPixels = 0;
+            for (let i = 0; i < imageData.length; i += 4) {
+              if (
+                imageData[i] > 16 ||
+                imageData[i + 1] > 16 ||
+                imageData[i + 2] > 16
+              ) {
+                darkPixels++;
+              }
+            }
+            charMap.push({ char, darkPixels });
+          });
+
+          // Remove duplicates and blanks
+          const unique = [];
+          const seen = new Set();
+          charMap
+            .sort((a, b) => a.darkPixels - b.darkPixels)
+            .forEach(({ char, darkPixels }) => {
+              if (!seen.has(darkPixels)) {
+                unique.push({ char, darkPixels });
+                seen.add(darkPixels);
+              }
+            });
+
+          // Evenly sample across the darkness range
+          const minDark = unique[0].darkPixels;
+          const maxDark = unique[unique.length - 1].darkPixels;
+          const step = (maxDark - minDark) / (rampLength - 1);
+          console.log({ minDark, maxDark, step });
+
+          const ramp = [];
+          for (let i = 0; i < rampLength; i++) {
+            const target = minDark + i * step;
+            // Find character closest to target darkness
+            let closest = unique[0];
+            let minDiff = Math.abs(unique[0].darkPixels - target);
+            for (let j = 1; j < unique.length; j++) {
+              const diff = Math.abs(unique[j].darkPixels - target);
+              if (diff < minDiff) {
+                closest = unique[j];
+                minDiff = diff;
+              }
+            }
+            ramp.push(closest);
+          }
+
+          // Output result
+          console.log("Evenly distributed ramp with darkness values:");
+          ramp.forEach(({ char, darkPixels }) => {
+            console.log(`'${char}': ${darkPixels}`);
+          });
+          const rampString = ramp.map(({ char }) => char).join("");
+          console.log({ rampString });
+          return rampString;
+        }
+      })();
+    </script>
+  </body>
+</html>
