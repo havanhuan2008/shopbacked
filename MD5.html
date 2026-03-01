@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Havanhuan Premium Mod System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ==========================================================================
+           HỆ THỐNG BIẾN TOÀN CỤC (DESIGN TOKENS)
+           ========================================================================== */
+        :root {
+            /* Màu sắc chủ đạo */
+            --primary: #6c5ce7;
+            --primary-dark: #4834d4;
+            --secondary: #00cec9;
+            --accent: #ff7675;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+            
+            /* Nền và Chữ */
+            --bg-white: #ffffff;
+            --bg-light: #f8f9fa;
+            --bg-dark: #0f1015;
+            --bg-darker: #08080a;
+            --text-main: #2d3436;
+            --text-muted: #636e72;
+            --text-light: #f1f2f6;
+            
+            /* Hiệu ứng Kính (Glassmorphism) */
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            
+            /* Kích thước & Border Radius */
+            --radius-sm: 10px;
+            --radius-md: 20px;
+            --radius-lg: 35px;
+            --radius-pill: 100px;
+            
+            /* Chuyển động (Transitions) */
+            --transition-fast: 0.2s ease;
+            --transition-normal: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --transition-slow: 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ==========================================================================
+           RESET & BASE STYLES
+           ========================================================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-white);
+            color: var(--text-main);
+            overflow: hidden; /* Ngăn scroll body, chỉ scroll phần cần thiết */
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Tùy chỉnh thanh cuộn */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.02);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: var(--radius-pill);
+        }
+
+        /* ==========================================================================
+           1. MÀN HÌNH ĐĂNG NHẬP (LOGIN SCREEN)
+           ========================================================================== */
+        #login-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: transform var(--transition-slow), opacity var(--transition-slow);
+        }
+
+        /* Canvas Particle nền trắng */
+        #login-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 2;
+            width: 90%;
+            max-width: 420px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 50px 30px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--glass-shadow);
+            text-align: center;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        /* Icon Chìa khóa Động */
+        .key-icon-wrapper {
+            width: 100px; height: 100px;
+            margin: 0 auto 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--bg-white), #f0f0f0);
+            box-shadow: 10px 10px 20px #d9d9d9, -10px -10px 20px #ffffff;
+            display: flex; justify-content: center; align-items: center;
+            position: relative;
+        }
+        .key-icon-wrapper::before {
+            content: '';
+            position: absolute;
+            width: 120%; height: 120%;
+            border-radius: 50%;
+            border: 2px dashed var(--primary);
+            animation: spin 10s linear infinite;
+        }
+        .key-icon-wrapper i {
+            font-size: 40px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulseGlow 2s infinite;
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: var(--text-main);
+            letter-spacing: -1px;
+        }
+        .login-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        /* Input Key */
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        .input-group i {
+            position: absolute;
+            left: 20px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-size: 18px;
+            transition: var(--transition-fast);
+        }
+        #access-key {
+            width: 100%;
+            padding: 18px 20px 18px 50px;
+            border-radius: var(--radius-pill);
+            border: 2px solid transparent;
+            background: #f4f6f8;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+            outline: none;
+            transition: var(--transition-normal);
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05);
+        }
+        #access-key:focus {
+            background: var(--bg-white);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1);
+        }
+        #access-key:focus + i {
+            color: var(--primary-dark);
+        }
+
+        /* Nút Login */
+        .btn-login {
+            width: 100%;
+            padding: 18px;
+            border-radius: var(--radius-pill);
+            border: none;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
+            transition: var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(108, 92, 231, 0.4);
+        }
+        .btn-login:active {
+            transform: translateY(1px);
+        }
+        /* Hiệu ứng loading nút bấm */
+        .btn-login .spinner {
+            display: none;
+            animation: spin 1s linear infinite;
+        }
+
+        /* ==========================================================================
+           2. GIAO DIỆN CHÍNH (MAIN APP)
+           ========================================================================== */
+        #main-app {
+            display: none;
+            width: 100%; height: 100%;
+            background: var(--bg-light);
+            overflow-y: auto;
+            position: relative;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: var(--transition-slow);
+        }
+
+        /* --- Header Tròn Đẹp Mắt (ĐÃ CẢI TIẾN) --- */
+        .header-floating {
+            margin: 20px;
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.85); /* Tăng độ sáng cho kính */
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: var(--radius-pill);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* Đổ bóng rực rỡ và viền mỏng tạo cảm giác premium */
+            box-shadow: 
+                0 15px 35px rgba(108, 92, 231, 0.15),
+                0 5px 15px rgba(0,0,0,0.05),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+            position: sticky; /* Ghim chặt khi scroll */
+            top: 20px;
+            z-index: 999; /* Luôn đè lên tất cả chức năng khác */
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            transition: all 0.3s ease;
+            transform: translateZ(0); /* Tối ưu hóa render */
+        }
+        
+        .header-floating:hover {
+            box-shadow: 
+                0 20px 40px rgba(108, 92, 231, 0.25),
+                0 5px 15px rgba(0,0,0,0.05),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Cải tiến Avatar: Thêm hiệu ứng viền gradient động */
+        .avatar {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            background-size: 200% 200%;
+            animation: gradientMove 3s ease infinite;
+            padding: 3px;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+        }
+        
+        .avatar img {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            border: 2px solid white;
+            object-fit: cover;
+        }
+
+        .online-dot {
+            position: absolute;
+            bottom: -2px; right: -2px;
+            width: 14px; height: 14px;
+            background: var(--success);
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .user-info h3 {
+            font-size: 15px;
+            font-weight: 800;
+        }
+        .user-info p {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-family: 'Space Mono', monospace;
+        }
+        
+        /* Stats Monitor trên Header */
+        .system-stats {
+            display: flex;
+            gap: 15px;
+        }
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .stat-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .stat-label {
+            font-size: 9px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* --- Banner Slider Tự Động --- */
+        .hero-banner-section {
+            padding: 10px 20px 25px;
+        }
+        .hero-slider-container {
+            width: 100%;
+            height: 180px;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        .hero-track {
+            display: flex;
+            width: 300%; /* 3 ảnh */
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .hero-slide {
+            width: 33.333%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .hero-slide::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        }
+        .slide-content {
+            position: absolute;
+            bottom: 20px; left: 20px;
+            color: white; z-index: 2;
+        }
+        .slide-badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(5px);
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+            font-size: 10px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+        .slide-content h2 { font-size: 20px; font-weight: 800; }
+        .slider-dots {
+            position: absolute;
+            bottom: 15px; right: 20px;
+            display: flex; gap: 5px; z-index: 2;
+        }
+        .dot {
+            width: 8px; height: 8px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            transition: var(--transition-fast);
+        }
+        .dot.active { background: white; width: 20px; border-radius: 10px; }
+
+        /* --- Vùng Chức Năng (Feature Slider) --- */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 25px;
+            margin-bottom: 15px;
+        }
+        .section-header h2 {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .section-header i {
+            color: var(--primary);
+        }
+
+        /* 5 CHỨC NĂNG SLIDER (Kéo Tay) */
+        .features-slider-wrapper {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding: 10px 25px 30px;
+            gap: 20px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .features-slider-wrapper::-webkit-scrollbar { display: none; }
+
+        .feature-card {
+            min-width: 280px;
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.04);
+            scroll-snap-align: center;
+            border: 2px solid transparent;
+            transition: var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Hiệu ứng tia sáng lướt qua card */
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent);
+            transform: skewX(-25deg);
+            transition: 0.5s;
+            z-index: 1;
+        }
+        .feature-card:hover::before { left: 150%; }
+
+        .card-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 15px; position: relative; z-index: 2;
+        }
+        .card-icon {
+            width: 60px; height: 60px;
+            border-radius: var(--radius-md);
+            background: rgba(108, 92, 231, 0.1);
+            color: var(--primary);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 28px;
+            transition: var(--transition-normal);
+        }
+        .status-indicator {
+            padding: 5px 12px;
+            border-radius: var(--radius-pill);
+            font-size: 10px; font-weight: 700;
+            background: #f1f2f6; color: var(--text-muted);
+            transition: var(--transition-normal);
+        }
+
+        .card-body { position: relative; z-index: 2; flex-grow: 1; }
+        .card-body h3 { font-size: 18px; margin-bottom: 8px; font-weight: 800; }
+        .card-body p { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px;}
+        
+        /* Tiến trình (Progress giả lập) */
+        .power-bar {
+            width: 100%; height: 6px;
+            background: #f1f2f6;
+            border-radius: var(--radius-pill);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .power-fill {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: var(--radius-pill);
+            transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Toggle Button bên trong thẻ */
+        .card-toggle {
+            width: 100%; padding: 12px;
+            border-radius: var(--radius-md);
+            background: var(--bg-light);
+            border: none; color: var(--text-main);
+            font-weight: 700; font-size: 13px;
+            transition: var(--transition-normal);
+        }
+
+        /* Trạng thái KÍCH HOẠT (Active) của Card */
+        .feature-card.active {
+            background: var(--bg-dark);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .feature-card.active .card-icon { background: rgba(255,255,255,0.1); color: var(--secondary); box-shadow: 0 0 20px rgba(0,206,201,0.3);}
+        .feature-card.active h3 { color: white; }
+        .feature-card.active p { color: #a0a0a0; }
+        .feature-card.active .status-indicator { background: rgba(0, 184, 148, 0.2); color: var(--success); }
+        .feature-card.active .card-toggle { background: var(--primary); color: white; box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4); }
+
+        /* ==========================================================================
+           3. FOOTER NỀN ĐEN RADIUS (BLACK BOTTOM SHEET)
+           ========================================================================== */
+        .bottom-sheet {
+            background: var(--bg-darker);
+            border-radius: 40px 40px 0 0;
+            padding: 40px 25px 80px;
+            color: white;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* Hiệu ứng lưới Matrix mờ nền */
+        .matrix-bg {
+            position: absolute; inset: 0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            z-index: 0; pointer-events: none;
+        }
+
+        .sheet-content { position: relative; z-index: 1; }
+        
+        .footer-header {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 15px;
+        }
+        .footer-header h2 {
+            font-family: 'Space Mono', monospace;
+            font-size: 24px;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        /* Màn hình Console Log Chuyên Nghiệp */
+        .terminal-box {
+            background: #000000;
+            border: 1px solid #333;
+            border-radius: var(--radius-md);
+            padding: 15px;
+            height: 120px;
+            overflow-y: auto;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            color: var(--success);
+            margin-bottom: 30px;
+            box-shadow: inset 0 0 10px rgba(0,255,0,0.05);
+        }
+        .terminal-box::-webkit-scrollbar { width: 4px; }
+        .terminal-box::-webkit-scrollbar-thumb { background: #333; }
+        .log-line { margin-bottom: 5px; opacity: 0.8; animation: fadeInRight 0.3s ease; }
+        .log-time { color: var(--text-muted); margin-right: 8px; }
+        .log-sys { color: var(--warning); margin-right: 8px; }
+
+        .copyright-info {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            line-height: 1.8;
+        }
+        .social-links {
+            display: flex; justify-content: center; gap: 15px; margin-top: 15px;
+        }
+        .social-links a {
+            color: #888; font-size: 20px; transition: var(--transition-fast);
+        }
+        .social-links a:hover { color: white; transform: scale(1.2); }
+
+        /* ==========================================================================
+           4. HỆ THỐNG THÔNG BÁO (TOAST NOTIFICATIONS)
+           ========================================================================== */
+        #toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 99999;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            background: rgba(15, 16, 21, 0.9);
+            backdrop-filter: blur(10px); color: white;
+            padding: 15px 20px; border-radius: var(--radius-sm);
+            display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateX(120%);
+            animation: slideInRight 0.4s forwards;
+            border-left: 4px solid var(--primary);
+            min-width: 250px;
+        }
+        .toast.hide { animation: slideOutRight 0.4s forwards; }
+        .toast i { font-size: 20px; }
+        .toast.success i { color: var(--success); }
+        .toast.error i { color: var(--danger); }
+        .toast-content h4 { font-size: 14px; margin-bottom: 3px; }
+        .toast-content p { font-size: 11px; color: #aaa; }
+
+        /* ==========================================================================
+           5. ANIMATIONS (KEYFRAMES)
+           ========================================================================== */
+        @keyframes floatUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 5px var(--primary)); }
+            50% { transform: scale(1.1); opacity: 0.8; filter: drop-shadow(0 0 15px var(--secondary)); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+        @keyframes fadeInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideInRight { to { transform: translateX(0); } }
+        @keyframes slideOutRight { to { transform: translateX(120%); opacity: 0; } }
+        @keyframes ripple {
+            to { transform: scale(4); opacity: 0; }
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <canvas id="login-canvas"></canvas> <div class="login-container" id="login-box">
+            <div class="key-icon-wrapper">
+                <i class="fas fa-key"></i>
+            </div>
+            
+            <h1 class="login-title">AUTH PORTAL</h1>
+            <p class="login-subtitle">Nhập mã truy cập để vào hệ thống nội bộ</p>
+            
+            <div class="input-group">
+                <input type="text" id="access-key" placeholder="Mã Access Key" autocomplete="off" spellcheck="false">
+                <i class="fas fa-lock"></i>
+            </div>
+            
+            <button class="btn-login" id="btn-login" onclick="AppSystem.verifyKey()">
+                <span class="btn-text">ĐĂNG NHẬP HỆ THỐNG</span>
+                <i class="fas fa-circle-notch spinner"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="main-app">
+        
+        <header class="header-floating">
+            <div class="user-profile">
+                <div class="avatar">
+                    <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=havanhuan" alt="Avatar">
+                    <div class="online-dot"></div>
+                </div>
+                <div class="user-info">
+                    <h3>Havanhuan</h3>
+                    <p>VIP Member • Rank SS</p>
+                </div>
+            </div>
+            
+            <div class="system-stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="fps-counter">60</span>
+                    <span class="stat-label">FPS</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" style="color: var(--success);" id="ping-counter">12ms</span>
+                    <span class="stat-label">PING</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="hero-banner-section">
+            <div class="hero-slider-container">
+                <div class="hero-track" id="hero-track">
+                    <div class="hero-slide" style="background-image: url('https://picsum.photos/id/10/800/400')">
+                        <div class="slide-content">
+                            <span class="slide-badge">Bản cập nhật mới</span>
+                            <h2>Anti-Ban V3.0</h2>
+                        </div>
+                    </div>
+                    <div class="hero-slide" style="background-image: url('https://picsum.photos/id/20/800/400')">
+                        <div class="slide-content">
+                            <span class="slide-badge">Sự kiện</span>
+                            <h2>Mở Khóa All Skin</h2>
+                        </div>
+                    </div>
+                    <div class="hero-slide" style="background-image: url('https://picsum.photos/id/30/800/400')">
+                        <div class="slide-content">
+                            <span class="slide-badge">Hot</span>
+                            <h2>Aimbot Siêu Cấp</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="slider-dots" id="slider-dots">
+                    <div class="dot active"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-header">
+            <h2>MODULES CHÍNH</h2>
+            <i class="fas fa-sliders-h"></i>
+        </div>
+
+        <div class="features-slider-wrapper">
+            
+            <div class="feature-card" onclick="ModManager.toggleMod(this, 'ESP X-Ray')">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-eye"></i></div>
+                    <div class="status-indicator">ĐÃ TẮT</div>
+                </div>
+                <div class="card-body">
+                    <h3>ESP X-Ray View</h3>
+                    <p>Nhìn xuyên vật cản, hiển thị bộ khung xương, lượng máu và khoảng cách của kẻ địch trên toàn bản đồ.</p>
+                    <div class="power-bar"><div class="power-fill" data-power="90%"></div></div>
+                </div>
+                <button class="card-toggle">KÍCH HOẠT MODULE</button>
+            </div>
+
+            <div class="feature-card" onclick="ModManager.toggleMod(this, 'Auto Headshot')">
+                <div class="card-header">
+                    <div class="card-icon" style="color: var(--accent); background: rgba(255,118,117,0.1);"><i class="fas fa-crosshairs"></i></div>
+                    <div class="status-indicator">ĐÃ TẮT</div>
+                </div>
+                <div class="card-body">
+                    <h3>Auto Headshot</h3>
+                    <p>Khóa mục tiêu tự động 100% vào vùng đầu. Bỏ qua độ giật của súng và tự động bù trừ đạn rơi.</p>
+                    <div class="power-bar"><div class="power-fill" data-power="100%" style="background: var(--accent);"></div></div>
+                </div>
+                <button class="card-toggle">KÍCH HOẠT MODULE</button>
+            </div>
+
+            <div class="feature-card" onclick="ModManager.toggleMod(this, 'Flash Speed')">
+                <div class="card-header">
+                    <div class="card-icon" style="color: var(--warning); background: rgba(253,203,110,0.1);"><i class="fas fa-bolt"></i></div>
+                    <div class="status-indicator">ĐÃ TẮT</div>
+                </div>
+                <div class="card-body">
+                    <h3>Flash Speed x5</h3>
+                    <p>Tăng tốc độ di chuyển chạy bộ, tốc độ lái xe và thời gian nhặt đồ lên gấp 5 lần so với bình thường.</p>
+                    <div class="power-bar"><div class="power-fill" data-power="80%" style="background: var(--warning);"></div></div>
+                </div>
+                <button class="card-toggle">KÍCH HOẠT MODULE</button>
+            </div>
+
+            <div class="feature-card" onclick="ModManager.toggleMod(this, 'God Mode')">
+                <div class="card-header">
+                    <div class="card-icon" style="color: var(--success); background: rgba(0,184,148,0.1);"><i class="fas fa-shield-virus"></i></div>
+                    <div class="status-indicator">ĐÃ TẮT</div>
+                </div>
+                <div class="card-body">
+                    <h3>Bất Tử (God Mode)</h3>
+                    <p>Hủy bỏ mọi sát thương nhận vào từ súng đạn, bom mìn, nón bo hay sát thương vật lý rơi từ trên cao.</p>
+                    <div class="power-bar"><div class="power-fill" data-power="100%" style="background: var(--success);"></div></div>
+                </div>
+                <button class="card-toggle">KÍCH HOẠT MODULE</button>
+            </div>
+
+            <div class="feature-card" onclick="ModManager.toggleMod(this, 'VIP Bypass')">
+                <div class="card-header">
+                    <div class="card-icon" style="color: #9b59b6; background: rgba(155,89,182,0.1);"><i class="fas fa-user-secret"></i></div>
+                    <div class="status-indicator">ĐÃ TẮT</div>
+                </div>
+                <div class="card-body">
+                    <h3>VIP Bypass System</h3>
+                    <p>Chặn hệ thống report của máy chủ. Giả mạo chỉ số phần cứng (HWID) giúp tài khoản an toàn tuyệt đối.</p>
+                    <div class="power-bar"><div class="power-fill" data-power="95%" style="background: #9b59b6;"></div></div>
+                </div>
+                <button class="card-toggle">KÍCH HOẠT MODULE</button>
+            </div>
+
+        </div>
+
+        <footer class="bottom-sheet">
+            <div class="matrix-bg"></div>
+            <div class="sheet-content">
+                
+                <div class="footer-header">
+                    <div>
+                        <h2>HAVANHUAN CORE</h2>
+                        <p style="font-size: 12px; color: #888; margin-top: 5px;">Hệ thống can thiệp bộ nhớ RAM v2026</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 11px; color: var(--success);">● SECURE CONNECTION</p>
+                    </div>
+                </div>
+
+                <p style="font-size: 11px; margin-bottom: 5px; color: #888;">TERMINAL LOG</p>
+                <div class="terminal-box" id="terminal-box">
+                    <div class="log-line">
+                        <span class="log-time">[00:00:00]</span>
+                        <span class="log-sys">SYSTEM</span> Khởi tạo môi trường ảo hóa thành công.
+                    </div>
+                </div>
+
+                <div class="copyright-info">
+                    <p><strong>Cảnh báo:</strong> Ứng dụng này chỉ dành cho mục đích giáo dục và nghiên cứu mã nguồn mở. Mọi hành vi lạm dụng đều bị nghiêm cấm.</p>
+                    <br>
+                    <p>&copy; 2026 Phát triển độc quyền bởi <strong>Havanhuan Studio</strong>.</p>
+                    <p>All Rights Reserved. Vui lòng không sao chép.</p>
+                    
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </div> <div id="toast-container"></div>
+
+
+    <script>
+        /**
+         * LỚP 1: HỆ THỐNG HẠT (PARTICLES) BACKGROUND CHO LOGIN
+         * Giúp nền trắng không bị nhàm chán
+         */
+        class ParticleNetwork {
+            constructor() {
+                this.canvas = document.getElementById('login-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.numParticles = 50; // Số lượng hạt
+                this.init();
+            }
+
+            init() {
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                for (let i = 0; i < this.numParticles; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        vx: (Math.random() - 0.5) * 1,
+                        vy: (Math.random() - 0.5) * 1,
+                        radius: Math.random() * 2 + 1
+                    });
+                }
+                this.animate();
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Cập nhật vị trí hạt
+                this.particles.forEach(p => {
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0 || p.x > this.canvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > this.canvas.height) p.vy *= -1;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    this.ctx.fillStyle = 'rgba(108, 92, 231, 0.2)'; // Màu tím nhạt
+                    this.ctx.fill();
+                });
+
+                // Vẽ đường nối giữa các hạt gần nhau
+                for (let i = 0; i < this.particles.length; i++) {
+                    for (let j = i + 1; j < this.particles.length; j++) {
+                        let dx = this.particles[i].x - this.particles[j].x;
+                        let dy = this.particles[i].y - this.particles[j].y;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 100) {
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
+                            this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
+                            this.ctx.strokeStyle = `rgba(108, 92, 231, ${1 - dist/100})`;
+                            this.ctx.lineWidth = 0.5;
+                            this.ctx.stroke();
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * LỚP 2: HỆ THỐNG GIAO DIỆN CHÍNH (APP SYSTEM)
+         * Quản lý đăng nhập, toast, monitor
+         */
+        const AppSystem = {
+            correctKey: "havanhuan",
+            
+            init() {
+                new ParticleNetwork();
+                this.setupEnterKey();
+                this.runMonitor();
+            },
+
+            // Xử lý phím Enter khi gõ Key
+            setupEnterKey() {
+                document.getElementById('access-key').addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') AppSystem.verifyKey();
+                });
+            },
+
+            // Kiểm tra Key với hiệu ứng loading giả lập mạng
+            verifyKey() {
+                const input = document.getElementById('access-key');
+                const btnText = document.querySelector('.btn-text');
+                const spinner = document.querySelector('.spinner');
+                const loginBox = document.getElementById('login-box');
+                const val = input.value.trim();
+
+                if (!val) {
+                    this.showToast("Lỗi", "Vui lòng nhập Access Key!", "error");
+                    this.shakeElement(loginBox);
+                    return;
+                }
+
+                // UI Loading
+                btnText.style.display = 'none';
+                spinner.style.display = 'inline-block';
+                input.disabled = true;
+
+                // Giả lập call API mất 1.5s
+                setTimeout(() => {
+                    if (val === this.correctKey) {
+                        this.showToast("Thành công", `Chào mừng, ${this.correctKey}!`, "success");
+                        this.transitionToMain();
+                    } else {
+                        this.showToast("Từ chối", "Key không hợp lệ. Hãy thử lại!", "error");
+                        this.shakeElement(loginBox);
+                        input.value = '';
+                        input.focus();
+                        // Reset UI
+                        btnText.style.display = 'inline-block';
+                        spinner.style.display = 'none';
+                        input.disabled = false;
+                    }
+                }, 1500);
+            },
+
+            // Chuyển cảnh mượt mà
+            transitionToMain() {
+                const loginScreen = document.getElementById('login-screen');
+                const mainApp = document.getElementById('main-app');
+                
+                loginScreen.style.transform = 'translateY(-100vh)';
+                loginScreen.style.opacity = '0';
+                
+                setTimeout(() => {
+                    loginScreen.style.display = 'none';
+                    mainApp.style.display = 'block';
+                    // Trigger reflow
+                    void mainApp.offsetWidth;
+                    mainApp.style.opacity = '1';
+                    mainApp.style.transform = 'scale(1)';
+                    
+                    // Bắt đầu các thành phần chính
+                    SliderController.init();
+                    TerminalLogger.add("Đăng nhập bằng mã 'havanhuan' thành công.");
+                    TerminalLogger.add("Đang tải dữ liệu cấu hình...");
+                }, 800);
+            },
+
+            // Hiệu ứng rung
+            shakeElement(element) {
+                element.style.animation = 'none';
+                void element.offsetWidth; // trigger reflow
+                element.style.animation = 'shake 0.4s';
+            },
+
+            // Hệ thống Toast Notification custom (Thay thế Alert)
+            showToast(title, message, type = 'success') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                
+                const iconClass = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+                
+                toast.innerHTML = `
+                    <i class="fas ${iconClass}"></i>
+                    <div class="toast-content">
+                        <h4>${title}</h4>
+                        <p>${message}</p>
+                    </div>
+                `;
+                
+                container.appendChild(toast);
+                
+                // Tự động xóa sau 3s
+                setTimeout(() => {
+                    toast.classList.add('hide');
+                    setTimeout(() => toast.remove(), 400); // Đợi animation xong
+                }, 3000);
+            },
+
+            // Giả lập chỉ số Ping và FPS nhảy liên tục
+            runMonitor() {
+                const fpsEl = document.getElementById('fps-counter');
+                const pingEl = document.getElementById('ping-counter');
+                
+                setInterval(() => {
+                    fpsEl.innerText = Math.floor(Math.random() * (62 - 58 + 1)) + 58;
+                    const ping = Math.floor(Math.random() * (25 - 12 + 1)) + 12;
+                    pingEl.innerText = ping + 'ms';
+                    // Đổi màu ping nếu cao
+                    pingEl.style.color = ping > 20 ? 'var(--warning)' : 'var(--success)';
+                }, 1500);
+            }
+        };
+
+        /**
+         * LỚP 3: BỘ ĐIỀU KHIỂN SLIDER BANNER (TỰ ĐỘNG + VUỐT)
+         */
+        const SliderController = {
+            currentSlide: 0,
+            totalSlides: 3,
+            track: null,
+            dots: null,
+            interval: null,
+
+            init() {
+                this.track = document.getElementById('hero-track');
+                this.dots = document.querySelectorAll('.dot');
+                this.startAutoPlay();
+            },
+
+            goToSlide(index) {
+                this.currentSlide = index;
+                this.track.style.transform = `translateX(-${index * 33.333}%)`;
+                
+                this.dots.forEach(dot => dot.classList.remove('active'));
+                this.dots[index].classList.add('active');
+            },
+
+            startAutoPlay() {
+                this.interval = setInterval(() => {
+                    let next = (this.currentSlide + 1) % this.totalSlides;
+                    this.goToSlide(next);
+                }, 3000);
+            }
+        };
+
+        /**
+         * LỚP 4: QUẢN LÝ CHỨC NĂNG MOD (MOD MANAGER)
+         * Xử lý click thẻ, chạy animation thanh power, log console
+         */
+        const ModManager = {
+            toggleMod(cardElement, modName) {
+                const isActive = cardElement.classList.contains('active');
+                const statusIndicator = cardElement.querySelector('.status-indicator');
+                const btn = cardElement.querySelector('.card-toggle');
+                const powerFill = cardElement.querySelector('.power-fill');
+                const targetPower = powerFill.getAttribute('data-power');
+
+                // Hiệu ứng Ripple (Sóng nước) khi click
+                this.createRipple(cardElement, event);
+
+                if (isActive) {
+                    // Tắt chức năng
+                    cardElement.classList.remove('active');
+                    statusIndicator.innerText = "ĐÃ TẮT";
+                    btn.innerText = "KÍCH HOẠT MODULE";
+                    powerFill.style.width = "0%";
+                    
+                    TerminalLogger.add(`[Module] Đã ngắt kết nối: ${modName}`, "warning");
+                    AppSystem.showToast("Đã Tắt", `Ngừng hoạt động ${modName}`);
+                } else {
+                    // Bật chức năng
+                    cardElement.classList.add('active');
+                    statusIndicator.innerText = "ĐANG CHẠY";
+                    btn.innerText = "HỦY KÍCH HOẠT";
+                    
+                    // Animation thanh năng lượng chạy
+                    setTimeout(() => { powerFill.style.width = targetPower; }, 100);
+
+                    TerminalLogger.add(`[Module] Bơm mã độc vào bộ nhớ: ${modName}... Thành công!`, "success");
+                    AppSystem.showToast("Kích Hoạt", `${modName} đang hoạt động trong nền.`);
+                    
+                    // Rung thiết bị (Mobile)
+                    if (navigator.vibrate) navigator.vibrate(50);
+                }
+            },
+
+            // Tạo hiệu ứng sóng nước vật lý khi bấm vào Card
+            createRipple(card, e) {
+                const circle = document.createElement('span');
+                const diameter = Math.max(card.clientWidth, card.clientHeight);
+                const radius = diameter / 2;
+                
+                // Lấy tọa độ click chính xác
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX ? e.clientX - rect.left : rect.width / 2;
+                const y = e.clientY ? e.clientY - rect.top : rect.height / 2;
+
+                circle.style.width = circle.style.height = `${diameter}px`;
+                circle.style.left = `${x - radius}px`;
+                circle.style.top = `${y - radius}px`;
+                circle.style.position = 'absolute';
+                circle.style.borderRadius = '50%';
+                circle.style.background = 'rgba(255, 255, 255, 0.3)';
+                circle.style.transform = 'scale(0)';
+                circle.style.animation = 'ripple 0.6s linear';
+                circle.style.pointerEvents = 'none';
+
+                card.appendChild(circle);
+                setTimeout(() => circle.remove(), 600);
+            }
+        };
+
+        /**
+         * LỚP 5: TERMINAL LOGGER (Ghi chú hệ thống nền đen)
+         */
+        const TerminalLogger = {
+            box: null,
+            
+            init() {
+                this.box = document.getElementById('terminal-box');
+            },
+
+            add(text, type = "info") {
+                if (!this.box) this.init();
+                
+                const now = new Date();
+                const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+                
+                let typeColor = "var(--success)"; // mặc định
+                if (type === "warning") typeColor = "var(--warning)";
+                if (type === "error") typeColor = "var(--danger)";
+
+                const line = document.createElement('div');
+                line.className = 'log-line';
+                line.innerHTML = `<span class="log-time">[${timeStr}]</span> <span class="log-sys" style="color:${typeColor}">[${type.toUpperCase()}]</span> ${text}`;
+                
+                this.box.appendChild(line);
+                
+                // Tự động cuộn xuống dưới cùng
+                this.box.scrollTop = this.box.scrollHeight;
+            }
+        };
+
+        // --- KHỞI ĐỘNG HỆ THỐNG KHI TẢI XONG TRANG ---
+        window.addEventListener('DOMContentLoaded', () => {
+            AppSystem.init();
+        });
+
+    </script>
+</body>
+</html>
