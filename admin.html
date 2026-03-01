@@ -1,195 +1,284 @@
-<!-- admin.html -->
+<!-- admin.html (Improved - White UI + Hide login after success + SweetAlert notifications) -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>HH SUPER - Admin Key Manager</title>
+
+  <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <style>
     :root{
-      --primary:#6366f1;
-      --primary-hover:#4f46e5;
-      --bg:#0b1220;
-      --card:#0f172a;
-      --card2:#111c33;
-      --text:#e5e7eb;
-      --muted:#94a3b8;
+      --primary:#4f46e5;
+      --primary2:#7c3aed;
+      --bg:#f6f7ff;
+      --card:#ffffff;
+      --card2:#fbfbff;
+      --text:#0f172a;
+      --muted:#64748b;
       --danger:#ef4444;
       --ok:#10b981;
-      --border:rgba(255,255,255,0.08);
+      --warn:#f59e0b;
+      --border:rgba(2,6,23,0.10);
+      --shadow:0 10px 30px rgba(2,6,23,0.10);
+      --shadow2:0 8px 18px rgba(2,6,23,0.08);
+      --radius:16px;
     }
     *{box-sizing:border-box}
+    html, body{height:100%}
     body{
       margin:0;
-      font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-      background: radial-gradient(1200px 800px at 10% 10%, rgba(99,102,241,0.20), transparent 55%),
-                  radial-gradient(1200px 800px at 90% 40%, rgba(139,92,246,0.18), transparent 55%),
-                  var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:
+        radial-gradient(900px 600px at 10% 10%, rgba(79,70,229,0.15), transparent 55%),
+        radial-gradient(900px 600px at 85% 35%, rgba(124,58,237,0.12), transparent 55%),
+        var(--bg);
       color:var(--text);
-      min-height:100vh;
     }
+
     .wrap{
-      max-width:1100px;
+      max-width:1080px;
       margin:0 auto;
-      padding:24px 16px 60px;
+      padding:18px 14px 42px;
     }
+
     .topbar{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:16px;
-      margin-bottom:18px;
+      gap:12px;
+      margin-bottom:14px;
     }
+
     .brand{
       display:flex;
       align-items:center;
-      gap:12px;
-      font-weight:800;
-      letter-spacing:0.5px;
-      font-size:18px;
+      gap:10px;
+      font-weight:900;
+      letter-spacing:.3px;
+      font-size:16px;
+      user-select:none;
     }
     .brand i{color:var(--primary)}
+    .brand small{
+      font-weight:800;
+      color:var(--muted);
+      margin-left:6px;
+    }
+
+    .rightbar{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
     .pill{
       display:inline-flex;
       align-items:center;
       gap:10px;
-      padding:10px 14px;
+      padding:9px 12px;
       border-radius:999px;
       border:1px solid var(--border);
-      background:rgba(255,255,255,0.04);
+      background:rgba(255,255,255,0.75);
+      box-shadow:var(--shadow2);
       color:var(--muted);
-      font-size:13px;
+      font-size:12px;
+      white-space:nowrap;
     }
+    .pill b{color:var(--text)}
+    .pill .dot{
+      width:8px;height:8px;border-radius:999px;background:var(--danger);display:inline-block;
+    }
+    .pill .dot.ok{background:var(--ok)}
+    .pill .sep{opacity:.5}
+
+    .mini-btn{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,0.75);
+      color:var(--text);
+      padding:9px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:800;
+      font-size:12px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      box-shadow:var(--shadow2);
+      transition:transform .12s, box-shadow .12s, background .12s;
+    }
+    .mini-btn:hover{transform:translateY(-1px); box-shadow:var(--shadow)}
+    .mini-btn:active{transform:translateY(0px)}
+    .mini-btn.danger{
+      border-color: rgba(239,68,68,0.30);
+      color:#991b1b;
+    }
+
     .grid{
       display:grid;
-      grid-template-columns: 360px 1fr;
-      gap:16px;
+      grid-template-columns: 340px 1fr;
+      gap:12px;
       align-items:start;
     }
     @media (max-width: 980px){
       .grid{grid-template-columns:1fr}
     }
+
     .card{
-      background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      background:linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.86));
       border:1px solid var(--border);
-      border-radius:18px;
-      padding:18px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.35);
+      border-radius:var(--radius);
+      padding:14px;
+      box-shadow:var(--shadow);
     }
+
     .card h3{
       margin:0 0 10px;
-      font-size:15px;
-      color:#fff;
+      font-size:14px;
       display:flex;
       align-items:center;
       gap:10px;
     }
     .card h3 i{color:var(--primary)}
     .sub{
-      margin:0 0 14px;
+      margin:0 0 10px;
       color:var(--muted);
-      font-size:13px;
-      line-height:1.5;
+      font-size:12px;
+      line-height:1.45;
     }
-    .row{display:flex; gap:10px}
-    .col{flex:1}
+
     label{
       display:block;
-      font-size:12px;
+      font-size:11px;
       color:var(--muted);
-      margin:10px 0 6px;
+      margin:9px 0 6px;
+      font-weight:800;
+      letter-spacing:.2px;
     }
+
     input, select{
       width:100%;
-      padding:12px 12px;
+      padding:10px 11px;
       border-radius:12px;
       border:1px solid var(--border);
-      background:rgba(255,255,255,0.04);
+      background:rgba(255,255,255,0.92);
       color:var(--text);
       outline:none;
+      font-size:13px;
+      transition:box-shadow .12s, border-color .12s;
     }
-    input:focus{border-color:rgba(99,102,241,0.6); box-shadow:0 0 0 3px rgba(99,102,241,0.15)}
+    input:focus, select:focus{
+      border-color:rgba(79,70,229,0.35);
+      box-shadow:0 0 0 3px rgba(79,70,229,0.12);
+    }
+
+    .row{display:flex; gap:10px}
+    .col{flex:1}
+    .two{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 640px){
+      .two{grid-template-columns:1fr}
+    }
+
     .btn{
       width:100%;
-      margin-top:12px;
-      padding:12px 14px;
+      margin-top:10px;
+      padding:10px 12px;
       border:none;
       border-radius:12px;
-      background:linear-gradient(135deg, var(--primary), #8b5cf6);
+      background:linear-gradient(135deg, var(--primary), var(--primary2));
       color:#fff;
-      font-weight:700;
+      font-weight:900;
       cursor:pointer;
-      transition:transform .2s, opacity .2s;
-      box-shadow:0 10px 20px rgba(99,102,241,0.25);
+      transition:transform .12s, opacity .12s, box-shadow .12s;
+      box-shadow:0 10px 18px rgba(79,70,229,0.22);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      font-size:13px;
     }
     .btn:hover{transform:translateY(-1px)}
-    .btn:active{transform:translateY(1px)}
+    .btn:active{transform:translateY(0px)}
+    .btn[disabled]{opacity:.65; cursor:not-allowed; transform:none}
+
     .btn.secondary{
-      background:rgba(255,255,255,0.06);
+      background:rgba(255,255,255,0.88);
       box-shadow:none;
       border:1px solid var(--border);
       color:var(--text);
-      font-weight:650;
-    }
-    .btn.danger{
-      background:linear-gradient(135deg, #ef4444, #fb7185);
-      box-shadow:0 10px 20px rgba(239,68,68,0.20);
+      font-weight:900;
     }
     .btn.ok{
       background:linear-gradient(135deg, #10b981, #34d399);
-      box-shadow:0 10px 20px rgba(16,185,129,0.20);
+      box-shadow:0 10px 18px rgba(16,185,129,0.18);
     }
+    .btn.danger{
+      background:linear-gradient(135deg, #ef4444, #fb7185);
+      box-shadow:0 10px 18px rgba(239,68,68,0.16);
+    }
+
     .inline-actions{
       display:flex;
       gap:10px;
       margin-top:10px;
     }
     .inline-actions .btn{margin-top:0}
-    .msg{
-      margin-top:12px;
-      font-size:13px;
-      color:var(--muted);
-    }
-    .msg.error{color: #fecaca}
-    .msg.ok{color:#bbf7d0}
+
     .table-wrap{
       overflow:auto;
       border-radius:14px;
       border:1px solid var(--border);
-      background:rgba(0,0,0,0.18);
+      background:rgba(255,255,255,0.80);
+      box-shadow:var(--shadow2);
     }
     table{
       width:100%;
       border-collapse:collapse;
-      min-width: 860px;
+      min-width: 880px;
     }
     th, td{
-      padding:12px 12px;
-      border-bottom:1px solid rgba(255,255,255,0.06);
+      padding:10px 10px;
+      border-bottom:1px solid rgba(2,6,23,0.06);
       text-align:left;
-      font-size:13px;
+      font-size:12.5px;
       vertical-align:top;
+      color:var(--text);
     }
     th{
       position:sticky;
       top:0;
-      background:rgba(15,23,42,0.95);
+      background:rgba(255,255,255,0.96);
       backdrop-filter: blur(10px);
-      color:#e2e8f0;
-      font-size:12px;
-      letter-spacing:0.4px;
+      color:#334155;
+      font-size:11px;
+      letter-spacing:0.35px;
       text-transform:uppercase;
+      border-bottom:1px solid rgba(2,6,23,0.10);
+      z-index:2;
     }
+
     .kbd{
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-size:12px;
       padding:6px 8px;
       border-radius:10px;
       border:1px solid var(--border);
-      background:rgba(255,255,255,0.05);
+      background:rgba(248,250,252,0.95);
       display:inline-block;
+      color:#0f172a;
     }
+
     .badge{
       display:inline-flex;
       align-items:center;
@@ -198,26 +287,30 @@
       border-radius:999px;
       font-size:12px;
       border:1px solid var(--border);
-      background:rgba(255,255,255,0.04);
+      background:rgba(255,255,255,0.70);
       color:var(--muted);
       white-space:nowrap;
+      font-weight:900;
     }
-    .badge.ok{color:#bbf7d0; border-color: rgba(16,185,129,0.35); background:rgba(16,185,129,0.10)}
-    .badge.bad{color:#fecaca; border-color: rgba(239,68,68,0.35); background:rgba(239,68,68,0.10)}
-    .badge.warn{color:#fde68a; border-color: rgba(245,158,11,0.35); background:rgba(245,158,11,0.10)}
+    .badge.ok{color:#065f46; border-color: rgba(16,185,129,0.30); background:rgba(16,185,129,0.10)}
+    .badge.bad{color:#991b1b; border-color: rgba(239,68,68,0.30); background:rgba(239,68,68,0.10)}
+    .badge.warn{color:#92400e; border-color: rgba(245,158,11,0.30); background:rgba(245,158,11,0.10)}
+
     .small{
       font-size:12px;
       color:var(--muted);
-      line-height:1.4;
+      line-height:1.35;
     }
+
     .actions{
       display:flex;
       flex-wrap:wrap;
       gap:8px;
     }
+
     .action-btn{
       border:1px solid var(--border);
-      background:rgba(255,255,255,0.05);
+      background:rgba(255,255,255,0.90);
       color:var(--text);
       padding:8px 10px;
       border-radius:12px;
@@ -226,109 +319,153 @@
       display:inline-flex;
       align-items:center;
       gap:8px;
-      transition:transform .15s, background .15s;
+      transition:transform .12s, background .12s, box-shadow .12s;
+      font-weight:900;
+      box-shadow:0 8px 14px rgba(2,6,23,0.06);
     }
-    .action-btn:hover{transform:translateY(-1px); background:rgba(255,255,255,0.08)}
-    .action-btn.danger{border-color:rgba(239,68,68,0.35)}
-    .action-btn.ok{border-color:rgba(16,185,129,0.35)}
+    .action-btn:hover{transform:translateY(-1px); background:rgba(255,255,255,1); box-shadow:0 12px 18px rgba(2,6,23,0.10)}
+    .action-btn:active{transform:translateY(0px)}
+    .action-btn.danger{border-color:rgba(239,68,68,0.30); color:#991b1b}
+    .action-btn.ok{border-color:rgba(16,185,129,0.30); color:#065f46}
+
     .searchbar{
       display:flex;
       gap:10px;
       align-items:center;
-      margin-bottom:12px;
+      margin-bottom:10px;
     }
     .searchbar input{flex:1}
+
     .footer-note{
-      margin-top:16px;
+      margin-top:12px;
       color:var(--muted);
       font-size:12px;
-      line-height:1.6;
+      line-height:1.5;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px dashed rgba(2,6,23,0.12);
+      background:rgba(255,255,255,0.70);
     }
-    /* modal */
+
+    /* Modal */
     .modal{
       position:fixed;
       inset:0;
       display:none;
       align-items:center;
       justify-content:center;
-      background:rgba(0,0,0,0.55);
-      padding:16px;
+      background:rgba(2,6,23,0.45);
+      padding:14px;
       z-index:9999;
     }
     .modal.show{display:flex}
     .modal-card{
       width:min(720px, 100%);
-      background:rgba(15,23,42,0.96);
+      background:rgba(255,255,255,0.98);
       border:1px solid var(--border);
       border-radius:18px;
-      box-shadow:0 20px 60px rgba(0,0,0,0.55);
+      box-shadow:0 20px 60px rgba(2,6,23,0.30);
       overflow:hidden;
     }
     .modal-head{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      padding:14px 16px;
-      border-bottom:1px solid rgba(255,255,255,0.06);
+      padding:12px 14px;
+      border-bottom:1px solid rgba(2,6,23,0.08);
+      background:linear-gradient(135deg, rgba(79,70,229,0.08), rgba(124,58,237,0.06));
     }
-    .modal-head strong{display:flex; align-items:center; gap:10px}
-    .modal-body{padding:16px}
+    .modal-head strong{
+      display:flex; align-items:center; gap:10px;
+      font-size:13px;
+    }
+    .modal-body{padding:14px}
     .modal-close{
       border:1px solid var(--border);
-      background:rgba(255,255,255,0.05);
+      background:rgba(255,255,255,0.95);
       color:var(--text);
       width:38px;
       height:38px;
       border-radius:12px;
       cursor:pointer;
+      box-shadow:0 8px 14px rgba(2,6,23,0.06);
     }
-    .modal-close:hover{background:rgba(255,255,255,0.08)}
-    .two{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
+    .modal-close:hover{background:rgba(255,255,255,1)}
+    .divider{
+      border:none;
+      height:1px;
+      background:rgba(2,6,23,0.08);
+      margin:12px 0;
     }
-    @media (max-width: 640px){
-      .two{grid-template-columns:1fr}
+
+    /* Sections */
+    #managerSection{display:none}
+    .ghost{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(2,6,23,0.08);
+      background:rgba(255,255,255,0.72);
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
     }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <div class="topbar">
-      <div class="brand"><i class="fa-solid fa-shield-halved"></i> HH SUPER <span style="color:var(--muted);font-weight:700">Admin</span></div>
-      <div class="pill">
-        <span><i class="fa-solid fa-database"></i> Firebase Realtime</span>
-        <span style="opacity:.6">|</span>
-        <span id="who">Chưa đăng nhập</span>
+      <div class="brand">
+        <i class="fa-solid fa-shield-halved"></i> HH SUPER <small>Admin</small>
+      </div>
+
+      <div class="rightbar">
+        <div class="pill" title="Trạng thái đăng nhập">
+          <span class="dot" id="dot"></span>
+          <span><i class="fa-solid fa-database"></i> Firebase Realtime</span>
+          <span class="sep">|</span>
+          <span id="who"><b>Chưa đăng nhập</b></span>
+        </div>
+
+        <button class="mini-btn" id="uidHintBtn" onclick="copyUIDHint()">
+          <i class="fa-solid fa-circle-info"></i> UID & Rules
+        </button>
+
+        <button class="mini-btn danger" id="logoutTopBtn" onclick="adminLogout()" style="display:none">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+        </button>
       </div>
     </div>
 
     <div class="grid">
-      <!-- LEFT: AUTH + CREATE -->
-      <div class="card" id="authCard">
+      <!-- LEFT: LOGIN -->
+      <div class="card" id="loginSection">
         <h3><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập Admin</h3>
         <p class="sub">
-          Admin dùng <b>Email/Password</b> (Firebase Auth).<br/>
-          Sau khi đăng nhập, bạn quản lý Key: tạo key, gia hạn ngày hết hạn, giới hạn tối đa thiết bị, xem/reset thiết bị.
+          Admin dùng <b>Email/Password</b> (Firebase Auth). Sau khi đăng nhập, form đăng nhập sẽ ẩn và bạn sẽ thấy khu vực quản lý key.
         </p>
+
         <label>Email</label>
-        <input id="email" type="email" placeholder="admin@gmail.com" />
+        <input id="email" type="email" placeholder="admin@gmail.com" autocomplete="username" />
+
         <label>Password</label>
-        <input id="pass" type="password" placeholder="••••••••" />
-        <button class="btn" id="loginBtn" onclick="adminLogin()"><i class="fa-solid fa-lock"></i> Đăng nhập</button>
-        <div class="inline-actions">
-          <button class="btn secondary" onclick="adminLogout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</button>
-          <button class="btn secondary" onclick="copyUIDHint()"><i class="fa-solid fa-circle-info"></i> Hướng dẫn UID</button>
+        <input id="pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+
+        <button class="btn" id="loginBtn" onclick="adminLogin()">
+          <i class="fa-solid fa-lock"></i> Đăng nhập
+        </button>
+
+        <div class="ghost">
+          <b>Mẹo:</b> Hãy thêm UID admin vào <span class="kbd">/admins/&lt;UID&gt; = true</span> và áp Rules để bảo mật.
         </div>
-        <div class="msg" id="authMsg"></div>
+      </div>
 
-        <hr style="border:none;height:1px;background:rgba(255,255,255,0.08);margin:16px 0">
-
+      <!-- LEFT: MANAGER (CREATE) -->
+      <div class="card" id="managerSection">
         <h3><i class="fa-solid fa-key"></i> Tạo / Quản lý Key</h3>
         <p class="sub">
-          Nếu ô Key trống → hệ thống tự tạo key ngẫu nhiên.<br/>
-          Hạn sử dụng theo <b>ngày</b>, lưu dưới dạng timestamp. Giới hạn thiết bị bằng transaction (đăng nhập app sẽ tự ghi thiết bị).
+          Nếu ô Key trống → hệ thống tự tạo key ngẫu nhiên. Hạn sử dụng theo <b>ngày</b>, lưu dạng timestamp.
         </p>
 
         <label>Key (tuỳ chọn)</label>
@@ -348,24 +485,25 @@
         <label>Ghi chú</label>
         <input id="newNote" placeholder="Ví dụ: Key VIP / test / khách A..." />
 
-        <div class="two">
+        <div class="two" style="margin-top:10px">
           <button class="btn ok" onclick="createKey()"><i class="fa-solid fa-plus"></i> Tạo key</button>
-          <button class="btn secondary" onclick="genKeyFill()"><i class="fa-solid fa-wand-magic-sparkles"></i> Tạo key ngẫu nhiên</button>
+          <button class="btn secondary" onclick="genKeyFill()"><i class="fa-solid fa-wand-magic-sparkles"></i> Random</button>
         </div>
 
-        <div class="msg" id="createMsg"></div>
-
         <div class="footer-note">
-          <b>Lưu ý bảo mật:</b> Bạn nên cấu hình Database Rules để chỉ Admin được xem danh sách key, và app chỉ đọc 1 key theo đường dẫn <span class="kbd">/keys/&lt;key&gt;</span>.
+          <b>Lưu ý bảo mật:</b> Bạn nên cấu hình Rules để chỉ Admin xem danh sách key, và app chỉ đọc theo <span class="kbd">/keys/&lt;key&gt;</span>.
         </div>
       </div>
 
       <!-- RIGHT: LIST -->
       <div class="card" id="listCard">
         <h3><i class="fa-solid fa-list"></i> Danh sách Key</h3>
+
         <div class="searchbar">
           <input id="search" placeholder="Tìm key..." oninput="renderKeys()" />
-          <button class="btn secondary" style="width:auto" onclick="refreshKeys()"><i class="fa-solid fa-rotate"></i></button>
+          <button class="btn secondary" style="width:auto; margin-top:0" onclick="refreshKeys()">
+            <i class="fa-solid fa-rotate"></i>
+          </button>
         </div>
 
         <div class="table-wrap">
@@ -386,7 +524,10 @@
           </table>
         </div>
 
-        <div class="msg" id="listMsg"></div>
+        <div class="small" style="margin-top:10px">
+          <i class="fa-solid fa-circle-info" style="color:var(--primary)"></i>
+          Tip: Click <b>Sửa</b> để gia hạn, reset thiết bị, khoá/mở khoá hoặc xoá key.
+        </div>
       </div>
     </div>
   </div>
@@ -398,6 +539,7 @@
         <strong><i class="fa-solid fa-pen-to-square" style="color:var(--primary)"></i> Chỉnh sửa Key: <span class="kbd" id="mKey"></span></strong>
         <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
+
       <div class="modal-body">
         <div class="two">
           <div>
@@ -419,7 +561,7 @@
         <label>Ghi chú</label>
         <input id="mNote" />
 
-        <div class="two" style="margin-top:12px">
+        <div class="two" style="margin-top:10px">
           <button class="btn ok" onclick="saveModal()"><i class="fa-solid fa-floppy-disk"></i> Lưu</button>
           <button class="btn secondary" onclick="renewDays()"><i class="fa-solid fa-calendar-plus"></i> Gia hạn + ngày</button>
         </div>
@@ -429,10 +571,10 @@
           <button class="btn danger" onclick="deleteKeyFromModal()"><i class="fa-solid fa-trash"></i> Xoá key</button>
         </div>
 
-        <div class="msg" id="mMsg"></div>
+        <hr class="divider">
 
-        <hr style="border:none;height:1px;background:rgba(255,255,255,0.08);margin:16px 0">
         <h3 style="margin:0 0 10px"><i class="fa-solid fa-mobile-screen" style="color:var(--primary)"></i> Thiết bị đã dùng</h3>
+
         <div class="table-wrap" style="border-radius:12px">
           <table style="min-width:0">
             <thead>
@@ -476,10 +618,138 @@
     let KEYS_CACHE = {};
     let MODAL_KEY = null;
 
-    function $(id){ return document.getElementById (id); }
-
+    function $(id){ return document.getElementById(id); }
     function now(){ return Date.now(); }
 
+    // ===== SweetAlert helpers =====
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 2200,
+      timerProgressBar: true
+    });
+
+    function toastSuccess(msg){ Toast.fire({icon:'success', title: msg || 'Thành công'}); }
+    function toastError(msg){ Toast.fire({icon:'error', title: msg || 'Có lỗi'}); }
+    function toastInfo(msg){ Toast.fire({icon:'info', title: msg || 'Thông tin'}); }
+    function toastWarn(msg){ Toast.fire({icon:'warning', title: msg || 'Cảnh báo'}); }
+
+    async function swalConfirm(title, text, icon){
+      const res = await Swal.fire({
+        title: title || 'Xác nhận',
+        text: text || '',
+        icon: icon || 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Đồng ý',
+        cancelButtonText: 'Huỷ',
+        reverseButtons: true
+      });
+      return !!res.isConfirmed;
+    }
+
+    async function swalPromptNumber(title, inputValue){
+      const res = await Swal.fire({
+        title: title || 'Nhập số',
+        input: 'number',
+        inputValue: (inputValue !== undefined && inputValue !== null) ? String(inputValue) : '',
+        inputAttributes: { min: 1, step: 1 },
+        showCancelButton: true,
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Huỷ',
+        reverseButtons: true,
+        inputValidator: (value)=>{
+          const n = Number(value);
+          if(!value) return 'Vui lòng nhập số.';
+          if(!Number.isFinite(n) || n <= 0) return 'Số phải > 0.';
+          return null;
+        }
+      });
+      if(!res.isConfirmed) return null;
+      return Number(res.value);
+    }
+
+    async function swalShowRules(uid){
+      const rules = `
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "admins": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "keys": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+
+      "$key": {
+        ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || auth.token != null)",
+        "devices": {
+          ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+          ".write": "auth != null"
+        }
+      }
+    }
+  }
+}
+      `.trim();
+
+      const msg = [
+        "HƯỚNG DẪN UID ADMIN",
+        "",
+        "1) Đăng nhập admin (Email/Password).",
+        "2) Copy UID đang đăng nhập.",
+        "3) Trong Realtime Database tạo: /admins/<UID> = true",
+        "4) Áp Rules mẫu (tham khảo bên dưới).",
+        "",
+        "UID hiện tại:",
+        (uid ? uid : "(Chưa đăng nhập)")
+      ].join("\n");
+
+      await Swal.fire({
+        title: 'UID & Rules mẫu',
+        icon: 'info',
+        html:
+          `<div style="text-align:left;font-size:13px;line-height:1.45;color:#0f172a">
+            <pre style="white-space:pre-wrap;background:#f8fafc;border:1px solid rgba(2,6,23,0.12);padding:10px;border-radius:12px;margin:0 0 10px">${escapeHtml(msg)}</pre>
+            <div style="font-weight:800;margin:6px 0 8px">Rules mẫu (Realtime Database):</div>
+            <pre style="white-space:pre;overflow:auto;background:#0b1220;color:#e5e7eb;border:1px solid rgba(2,6,23,0.12);padding:10px;border-radius:12px;margin:0">${escapeHtml(rules)}</pre>
+          </div>`,
+        showCancelButton: true,
+        confirmButtonText: 'Copy UID',
+        cancelButtonText: 'Đóng',
+        reverseButtons: true
+      }).then(async (r)=>{
+        if(r.isConfirmed){
+          try{
+            if(uid){
+              await navigator.clipboard.writeText(uid);
+              toastSuccess('Đã copy UID.');
+            }else{
+              toastWarn('Chưa đăng nhập.');
+            }
+          }catch(e){
+            toastError('Không copy được (trình duyệt chặn).');
+          }
+        }
+      });
+    }
+
+    function escapeHtml(str){
+      return String(str || '')
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#039;');
+    }
+
+    // ===== Utils =====
     function toDateInput(ts){
       if(!ts) return '';
       const d = new Date(ts);
@@ -511,35 +781,50 @@
       return out.toLowerCase();
     }
 
-    function setMsg(el, text, type){
-      el.className = 'msg' + (type ? (' ' + type) : '');
-      el.textContent = text || '';
-    }
-
     function isLoggedIn(){
       return !!auth.currentUser;
     }
 
-    function copyUIDHint(){
-      const u = auth.currentUser;
-      const msg = [
-        "Để Admin xem được danh sách key, bạn nên thêm UID admin vào DB:",
-        "1) Đăng nhập admin (Email/Password).",
-        "2) Copy UID đang đăng nhập.",
-        "3) Trong Realtime Database tạo đường dẫn: /admins/<UID> = true",
-        "4) Áp Rules (mẫu rules ở cuối câu trả lời)."
-      ].join("\n");
-      alert(msg);
+    function setUIState(logged){
+      $('loginSection').style.display = logged ? 'none' : 'block';
+      $('managerSection').style.display = logged ? 'block' : 'none';
+      $('logoutTopBtn').style.display = logged ? 'inline-flex' : 'none';
+      $('dot').className = 'dot' + (logged ? ' ok' : '');
+      if(!logged){
+        $('tbody').innerHTML = '<tr><td colspan="6" class="small">Chưa có dữ liệu. Hãy đăng nhập admin để tải danh sách key.</td></tr>';
+      }
     }
 
-    async function adminLogin(){
-      const email = ($('email').value || '').trim();
-      const pass = $('pass').value || '';
-      const authMsg = $('authMsg');
+    function updateWho(){
+      const who = $('who');
+      const u = auth.currentUser;
+      if(!u){
+        who.innerHTML = '<b>Chưa đăng nhập</b>';
+        setUIState(false);
+        return;
+      }
+      who.innerHTML = `<b>UID:</b> ${escapeHtml(u.uid)}`;
+      setUIState(true);
+    }
 
-      setMsg(authMsg, '', '');
+    // ===== UI actions =====
+    async function copyUIDHint(){
+      const u = auth.currentUser;
+      await swalShowRules(u ? u.uid : null);
+    }
+
+    function genKeyFill(){
+      $('newKey').value = genKey(10);
+      toastInfo('Đã tạo key ngẫu nhiên.');
+    }
+
+    // ===== Auth =====
+    async function adminLogin(){
+      const email = (($('email').value || '').trim());
+      const pass = ($('pass').value || '');
+
       if(!email || !pass){
-        setMsg(authMsg, 'Vui lòng nhập email và password.', 'error');
+        toastWarn('Vui lòng nhập email và password.');
         return;
       }
 
@@ -548,10 +833,10 @@
 
       try{
         await auth.signInWithEmailAndPassword(email, pass);
-        setMsg(authMsg, 'Đăng nhập thành công.', 'ok');
-        refreshKeys();
+        toastSuccess('Đăng nhập thành công.');
+        await refreshKeys();
       }catch(e){
-        setMsg(authMsg, (e && e.message) ? e.message : 'Đăng nhập thất bại.', 'error');
+        toastError((e && e.message) ? e.message : 'Đăng nhập thất bại.');
       }finally{
         $('loginBtn').disabled = false;
         $('loginBtn').innerHTML = '<i class="fa-solid fa-lock"></i> Đăng nhập';
@@ -562,17 +847,7 @@
       try{ await auth.signOut(); }catch(e){}
       KEYS_CACHE = {};
       renderKeys();
-      setMsg($('listMsg'), 'Đã đăng xuất.', '');
-    }
-
-    function updateWho(){
-      const who = $('who');
-      const u = auth.currentUser;
-      if(!u){
-        who.textContent = 'Chưa đăng nhập';
-        return;
-      }
-      who.textContent = `UID: ${u.uid}`;
+      toastInfo('Đã đăng xuất.');
     }
 
     auth.onAuthStateChanged((u)=>{
@@ -585,78 +860,75 @@
       }
     });
 
-    function genKeyFill(){
-      $('newKey').value = genKey(10);
-    }
-
+    // ===== Data ops =====
     async function createKey(){
-      const createMsg = $('createMsg');
-      setMsg(createMsg, '', '');
-
       if(!isLoggedIn()){
-        setMsg(createMsg, 'Bạn phải đăng nhập admin trước.', 'error');
+        toastError('Bạn phải đăng nhập admin trước.');
         return;
       }
 
-      let key = ($('newKey').value || '').trim().toLowerCase();
+      let key = (($('newKey').value || '').trim().toLowerCase());
       if(!key) key = genKey(10);
+
       if(/[.#$\[\]\/]/.test(key)){
-        setMsg(createMsg, 'Key chứa ký tự cấm: . # $ [ ] /', 'error');
+        toastError('Key chứa ký tự cấm: . # $ [ ] /');
         return;
       }
 
       const expStr = $('newExp').value;
       const expiresAt = dateInputToTs(expStr);
       const maxDevices = Math.max(1, Number(($('newMax').value || 1)));
-      const note = ($('newNote').value || '').trim();
+      const note = (($('newNote').value || '').trim());
 
       const ref = db.ref('keys/' + key);
-      const exists = await ref.once('value');
-
-      if(exists.exists()){
-        setMsg(createMsg, 'Key đã tồn tại. Hãy chọn key khác hoặc chỉnh sửa key này.', 'error');
-        return;
-      }
-
-      const payload = {
-        active: true,
-        expiresAt: expiresAt || 0,
-        maxDevices: maxDevices,
-        note: note,
-        createdAt: now(),
-        updatedAt: now()
-      };
 
       try{
+        const exists = await ref.once('value');
+        if(exists.exists()){
+          toastWarn('Key đã tồn tại. Hãy chọn key khác hoặc chỉnh sửa key này.');
+          return;
+        }
+
+        const payload = {
+          active: true,
+          expiresAt: expiresAt || 0,
+          maxDevices: maxDevices,
+          note: note,
+          createdAt: now(),
+          updatedAt: now()
+        };
+
         await ref.set(payload);
-        setMsg(createMsg, 'Tạo key thành công: ' + key, 'ok');
+
+        // Copy key
         try{
           await navigator.clipboard.writeText(key);
-          setMsg(createMsg, 'Tạo key thành công và đã copy: ' + key, 'ok');
-        }catch(e){}
+          toastSuccess('Tạo key thành công & đã copy: ' + key);
+        }catch(e){
+          toastSuccess('Tạo key thành công: ' + key);
+        }
+
         $('newKey').value = '';
         $('newNote').value = '';
-        refreshKeys();
+        await refreshKeys();
       }catch(e){
-        setMsg(createMsg, (e && e.message) ? e.message : 'Lỗi tạo key.', 'error');
+        toastError((e && e.message) ? e.message : 'Lỗi tạo key.');
       }
     }
 
     async function refreshKeys(){
-      const listMsg = $('listMsg');
       if(!isLoggedIn()){
-        setMsg(listMsg, 'Chưa đăng nhập admin.', 'error');
+        toastWarn('Chưa đăng nhập admin.');
         return;
       }
-      setMsg(listMsg, 'Đang tải danh sách key...', '');
 
       try{
         const snap = await db.ref('keys').once('value');
         KEYS_CACHE = snap.val() || {};
-        setMsg(listMsg, 'Tải xong: ' + Object.keys(KEYS_CACHE).length + ' key.', 'ok');
+        toastSuccess('Tải xong: ' + Object.keys(KEYS_CACHE).length + ' key.');
         renderKeys();
       }catch(e){
-        setMsg(listMsg, (e && e.message) ? e.message : 'Không tải được danh sách key (kiểm tra Rules).', 'error');
+        toastError((e && e.message) ? e.message : 'Không tải được danh sách key (kiểm tra Rules).');
       }
     }
 
@@ -664,6 +936,7 @@
       const n = now();
       const active = item.active !== false;
       const exp = Number(item.expiresAt || 0);
+
       if(!active) return '<span class="badge bad"><i class="fa-solid fa-ban"></i> Khoá</span>';
       if(exp && n > exp) return '<span class="badge bad"><i class="fa-solid fa-clock"></i> Hết hạn</span>';
       if(exp && (exp - n) < (3*24*60*60*1000)) return '<span class="badge warn"><i class="fa-solid fa-triangle-exclamation"></i> Sắp hết</span>';
@@ -677,8 +950,9 @@
 
     function renderKeys(){
       const tbody = $('tbody');
-      const q = ($('search').value || '').trim().toLowerCase();
+      const q = (($('search').value || '').trim().toLowerCase());
       const keys = Object.keys(KEYS_CACHE || {});
+
       if(!keys.length){
         tbody.innerHTML = '<tr><td colspan="6" class="small">Chưa có dữ liệu.</td></tr>';
         return;
@@ -703,8 +977,8 @@
         rows.push(`
           <tr>
             <td>
-              <div class="kbd">${k}</div>
-              <div class="small" style="margin-top:6px">${(item.note||'').replace(/</g,'&lt;')}</div>
+              <div class="kbd">${escapeHtml(k)}</div>
+              <div class="small" style="margin-top:6px">${escapeHtml(item.note||'')}</div>
             </td>
             <td>${statusBadge(item)}</td>
             <td>
@@ -720,10 +994,10 @@
             </td>
             <td>
               <div class="actions">
-                <button class="action-btn" onclick="copyKey('${k}')"><i class="fa-solid fa-copy"></i> Copy</button>
-                <button class="action-btn ok" onclick="openModal('${k}')"><i class="fa-solid fa-pen"></i> Sửa</button>
-                <button class="action-btn" onclick="toggleActive('${k}')"><i class="fa-solid fa-power-off"></i> On/Off</button>
-                <button class="action-btn danger" onclick="deleteKeyQuick('${k}')"><i class="fa-solid fa-trash"></i> Xoá</button>
+                <button class="action-btn" onclick="copyKey('${escapeHtml(k)}')"><i class="fa-solid fa-copy"></i> Copy</button>
+                <button class="action-btn ok" onclick="openModal('${escapeHtml(k)}')"><i class="fa-solid fa-pen"></i> Sửa</button>
+                <button class="action-btn" onclick="toggleActive('${escapeHtml(k)}')"><i class="fa-solid fa-power-off"></i> On/Off</button>
+                <button class="action-btn danger" onclick="deleteKeyQuick('${escapeHtml(k)}')"><i class="fa-solid fa-trash"></i> Xoá</button>
               </div>
             </td>
           </tr>
@@ -736,42 +1010,46 @@
     async function copyKey(k){
       try{
         await navigator.clipboard.writeText(k);
-        setMsg($('listMsg'), 'Đã copy: ' + k, 'ok');
+        toastSuccess('Đã copy: ' + k);
       }catch(e){
-        setMsg($('listMsg'), 'Không copy được (trình duyệt chặn).', 'error');
+        toastError('Không copy được (trình duyệt chặn).');
       }
     }
 
     async function toggleActive(k){
       if(!isLoggedIn()) return;
+
       const item = KEYS_CACHE[k] || {};
       const next = !(item.active !== false);
+
       try{
         await db.ref('keys/'+k).update({ active: next, updatedAt: now() });
-        setMsg($('listMsg'), 'Đã cập nhật trạng thái: ' + k, 'ok');
-        refreshKeys();
+        toastSuccess('Đã cập nhật trạng thái: ' + k);
+        await refreshKeys();
       }catch(e){
-        setMsg($('listMsg'), (e && e.message) ? e.message : 'Lỗi cập nhật.', 'error');
+        toastError((e && e.message) ? e.message : 'Lỗi cập nhật.');
       }
     }
 
     async function deleteKeyQuick(k){
       if(!isLoggedIn()) return;
-      if(!confirm('Xoá key "' + k + '" ? (Không thể hoàn tác)')) return;
+
+      const ok = await swalConfirm('Xoá key?', 'Xoá key "' + k + '" ? (Không thể hoàn tác)', 'warning');
+      if(!ok) return;
+
       try{
         await db.ref('keys/'+k).remove();
-        setMsg($('listMsg'), 'Đã xoá: ' + k, 'ok');
-        refreshKeys();
+        toastSuccess('Đã xoá: ' + k);
+        await refreshKeys();
       }catch(e){
-        setMsg($('listMsg'), (e && e.message) ? e.message : 'Lỗi xoá key.', 'error');
+        toastError((e && e.message) ? e.message : 'Lỗi xoá key.');
       }
     }
 
+    // ===== Modal =====
     async function openModal(k){
       MODAL_KEY = k;
       $('mKey').textContent = k;
-      $('mMsg').textContent = '';
-      $('mMsg').className = 'msg';
 
       const item = KEYS_CACHE[k] || {};
       $('mExp').value = toDateInput(item.expiresAt || 0);
@@ -779,7 +1057,6 @@
       $('mActive').value = (item.active !== false) ? 'true' : 'false';
       $('mNote').value = item.note || '';
 
-      // render devices
       renderModalDevices(item.devices || {});
       $('modal').classList.add('show');
     }
@@ -804,14 +1081,14 @@
       tbody.innerHTML = ids.map(id=>{
         const d = devices[id] || {};
         const info = [
-          d.platform ? ('Platform: ' + d.platform) : '',
-          d.language ? ('Lang: ' + d.language) : '',
-          d.screen ? ('Screen: ' + d.screen) : '',
-          d.userAgent ? ('UA: ' + d.userAgent) : ''
+          d.platform ? ('Platform: ' + escapeHtml(d.platform)) : '',
+          d.language ? ('Lang: ' + escapeHtml(d.language)) : '',
+          d.screen ? ('Screen: ' + escapeHtml(d.screen)) : '',
+          d.userAgent ? ('UA: ' + escapeHtml(d.userAgent)) : ''
         ].filter(Boolean).join('<br/>');
         return `
           <tr>
-            <td><span class="kbd">${id}</span></td>
+            <td><span class="kbd">${escapeHtml(id)}</span></td>
             <td>${d.firstSeen ? fmt(d.firstSeen) : '—'}</td>
             <td>${d.lastSeen ? fmt(d.lastSeen) : '—'}</td>
             <td class="small">${info}</td>
@@ -822,8 +1099,8 @@
 
     async function saveModal(){
       if(!isLoggedIn() || !MODAL_KEY) return;
-      const k = MODAL_KEY;
 
+      const k = MODAL_KEY;
       const expiresAt = dateInputToTs($('mExp').value);
       const maxDevices = Math.max(1, Number($('mMax').value || 1));
       const active = ($('mActive').value === 'true');
@@ -837,20 +1114,22 @@
           note,
           updatedAt: now()
         });
-        setMsg($('mMsg'), 'Đã lưu thay đổi.', 'ok');
+        toastSuccess('Đã lưu thay đổi.');
         await refreshKeys();
+
         // refresh modal devices from cache
         const item = KEYS_CACHE[k] || {};
         renderModalDevices(item.devices || {});
       }catch(e){
-        setMsg($('mMsg'), (e && e.message) ? e.message : 'Lỗi lưu.', 'error');
+        toastError((e && e.message) ? e.message : 'Lỗi lưu.');
       }
     }
 
     async function renewDays(){
       if(!isLoggedIn() || !MODAL_KEY) return;
-      const days = Number(prompt('Nhập số ngày muốn gia hạn (+):', '30'));
-      if(!days || days <= 0) return;
+
+      const days = await swalPromptNumber('Nhập số ngày muốn gia hạn (+)', 30);
+      if(!days) return;
 
       const k = MODAL_KEY;
       const item = KEYS_CACHE[k] || {};
@@ -861,42 +1140,46 @@
       try{
         await db.ref('keys/'+k).update({ expiresAt: next, updatedAt: now() });
         $('mExp').value = toDateInput(next);
-        setMsg($('mMsg'), 'Đã gia hạn +' + days + ' ngày.', 'ok');
+        toastSuccess('Đã gia hạn +' + days + ' ngày.');
         await refreshKeys();
       }catch(e){
-        setMsg($('mMsg'), (e && e.message) ? e.message : 'Lỗi gia hạn.', 'error');
+        toastError((e && e.message) ? e.message : 'Lỗi gia hạn.');
       }
     }
 
     async function resetDevicesFromModal(){
       if(!isLoggedIn() || !MODAL_KEY) return;
+
       const k = MODAL_KEY;
-      if(!confirm('Reset toàn bộ thiết bị của key "' + k + '" ?')) return;
+      const ok = await swalConfirm('Reset thiết bị?', 'Reset toàn bộ thiết bị của key "' + k + '" ?', 'warning');
+      if(!ok) return;
 
       try{
         await db.ref('keys/'+k+'/devices').remove();
         await db.ref('keys/'+k).update({ updatedAt: now() });
-        setMsg($('mMsg'), 'Đã reset thiết bị.', 'ok');
+        toastSuccess('Đã reset thiết bị.');
         await refreshKeys();
         const item = KEYS_CACHE[k] || {};
         renderModalDevices(item.devices || {});
       }catch(e){
-        setMsg($('mMsg'), (e && e.message) ? e.message : 'Lỗi reset thiết bị.', 'error');
+        toastError((e && e.message) ? e.message : 'Lỗi reset thiết bị.');
       }
     }
 
     async function deleteKeyFromModal(){
       if(!isLoggedIn() || !MODAL_KEY) return;
+
       const k = MODAL_KEY;
-      if(!confirm('Xoá key "' + k + '" ? (Không thể hoàn tác)')) return;
+      const ok = await swalConfirm('Xoá key?', 'Xoá key "' + k + '" ? (Không thể hoàn tác)', 'warning');
+      if(!ok) return;
 
       try{
         await db.ref('keys/'+k).remove();
-        setMsg($('mMsg'), 'Đã xoá key.', 'ok');
+        toastSuccess('Đã xoá key.');
         closeModal();
-        refreshKeys();
+        await refreshKeys();
       }catch(e){
-        setMsg($('mMsg'), (e && e.message) ? e.message : 'Lỗi xoá key.', 'error');
+        toastError((e && e.message) ? e.message : 'Lỗi xoá key.');
       }
     }
   </script>
